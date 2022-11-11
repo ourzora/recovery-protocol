@@ -1,0 +1,36 @@
+{
+  "name": "@zoralabs/recovery-contracts",
+  "description": "Community minting and royalties for TOMB SERIES and beyond.",
+  "version": "0.0.1",
+  "author": {
+    "name": "James Geary",
+    "url": "https://github.com/jgeary"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "commitizen": "^4.2.5",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-dev.24",
+    "rimraf": "^3.0.2",
+    "solhint": "^3.3.7",
+    "solhint-plugin-prettier": "^0.0.5"
+  },
+  "packageManager": "yarn@3.2.4",
+  "private": true,
+  "resolutions": {
+    "solhint/@solidity-parser/parser": "^0.14.5"
+  },
+  "scripts": {
+    "test": "forge test",
+    "clean": "rimraf cache out",
+    "lint": "yarn lint:sol && yarn prettier:check",
+    "lint:sol": "solhint \"{src,test}/**/*.sol\"",
+    "postinstall": "husky install",
+    "prettier": "prettier --config \"./.prettierrc.yml\" --write \"**/*.{json,md,sol,yml}\"",
+    "prettier:check": "prettier --config \"./.prettierrc.yml\" --check \"**/*.{json,md,sol,yml}\""
+  }
+}
