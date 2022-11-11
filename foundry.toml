@@ -6,7 +6,7 @@ fuzz = { runs = 256 }
 gas_reports = ["*"]
 libs = ["lib"]
 optimizer = true
-optimizer_runs = 500_000
+optimizer_runs = 30
 out = "out"
 solc = "0.8.17"
 src = "src"
