@@ -33,7 +33,7 @@ contract RecoveryCollection is
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     address payable public constant DEFAULT_PARENT_OWNER_ADDRESS = payable(0x1111111111111111111111111111111111111111);
-    IOperatorFilterRegistry immutable operatorFilterRegistry =
+    IOperatorFilterRegistry public immutable operatorFilterRegistry =
         IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
     address public marketFilterDAOAddress;
