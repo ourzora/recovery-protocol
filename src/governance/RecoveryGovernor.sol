@@ -27,6 +27,9 @@ contract RecoveryGovernor is
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant CANCELLER_ROLE = keccak256("CANCELLER_ROLE");
 
+    uint32 public recoveryParentTokenOwnerVotingWeight;
+    mapping(uint256 => bool) public recoveryParentTokenOwnerVotedOnProposal;
+
     constructor() {
         _disableInitializers();
     }
@@ -39,7 +42,8 @@ contract RecoveryGovernor is
         uint256 _initialVotingPeriod,
         uint256 _initialProposalThreshold,
         address _recoveryParentTokenContract,
-        uint256 _recoveryParentTokenId
+        uint256 _recoveryParentTokenId,
+        uint32 _recoveryParentTokenOwnerVotingWeight
     ) public initializer {
         __Governor_init(_governorName);
         __GovernorSettings_init(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold);
@@ -52,6 +56,8 @@ contract RecoveryGovernor is
         __RecoveryChildV1_init(_recoveryParentTokenContract, _recoveryParentTokenId);
 
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+
+        recoveryParentTokenOwnerVotingWeight = _recoveryParentTokenOwnerVotingWeight;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
@@ -98,6 +104,33 @@ contract RecoveryGovernor is
         string memory description
     ) public override(GovernorUpgradeable, IGovernorUpgradeable) returns (uint256) {
         return super.propose(targets, values, calldatas, description);
+    }
+
+    function _castVote(uint256 proposalId, address account, uint8 support, string memory reason, bytes memory params)
+        internal
+        override
+        returns (uint256)
+    {
+        require(state(proposalId) == ProposalState.Active, "Governor: vote not currently active");
+
+        uint256 weight = _getVotes(account, proposalSnapshot(proposalId), params);
+        if (account == recoveryParentTokenOwner()) {
+            require(
+                !recoveryParentTokenOwnerVotedOnProposal[proposalId],
+                "Governor: recovery parent token owner already voted on proposal"
+            );
+            recoveryParentTokenOwnerVotedOnProposal[proposalId] = true;
+            weight += recoveryParentTokenOwnerVotingWeight;
+        }
+        _countVote(proposalId, account, support, weight, params);
+
+        if (params.length == 0) {
+            emit VoteCast(account, proposalId, support, weight, reason);
+        } else {
+            emit VoteCastWithParams(account, proposalId, support, weight, reason, params);
+        }
+
+        return weight;
     }
 
     function proposalThreshold()
