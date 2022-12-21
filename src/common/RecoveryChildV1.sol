@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.16;
 
 import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin-upgradeable/contracts/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/introspection/ERC165Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/introspection/IERC165Upgradeable.sol";
 
 interface IRecoveryChildV1 is IERC165Upgradeable {
-    function getRecoveryParentToken() external view returns (address, uint256);
+    function recoveryParentToken() external view returns (address, uint256);
+
+    function recoveryParentTokenOwner() external view returns (address);
 }
 
 abstract contract RecoveryChildV1 is Initializable, ERC165Upgradeable, IRecoveryChildV1 {
-    address public recoveryParentTokenContract;
-    uint256 public recoveryParentTokenId;
+    address internal recoveryParentTokenContract;
+    uint256 internal recoveryParentTokenId;
 
     function __RecoveryChildV1_init(address _recoveryParentTokenContract, uint256 _recoveryParentTokenId)
         internal
@@ -21,8 +24,12 @@ abstract contract RecoveryChildV1 is Initializable, ERC165Upgradeable, IRecovery
         recoveryParentTokenId = _recoveryParentTokenId;
     }
 
-    function getRecoveryParentToken() public view returns (address, uint256) {
+    function recoveryParentToken() public view returns (address, uint256) {
         return (recoveryParentTokenContract, recoveryParentTokenId);
+    }
+
+    function recoveryParentTokenOwner() public view returns (address) {
+        return IERC721Upgradeable(recoveryParentTokenContract).ownerOf(recoveryParentTokenId);
     }
 
     function supportsInterface(bytes4 interfaceId)
