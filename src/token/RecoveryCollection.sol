@@ -12,7 +12,7 @@ import "@openzeppelin-upgradeable/contracts/token/ERC721/extensions/ERC721URISto
 import "@openzeppelin-upgradeable/contracts/token/ERC721/extensions/ERC721VotesUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/cryptography/EIP712Upgradeable.sol";
-import "zora-drops-contracts/interfaces/IOperatorFilterRegistry.sol";
+import "../utils/IOperatorFilterRegistry.sol";
 import "../utils/IERC173.sol";
 import "../common/RecoveryChildV1.sol";
 

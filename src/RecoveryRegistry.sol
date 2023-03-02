@@ -33,7 +33,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint256 timelockDelay;
         IVotesUpgradeable votingToken;
         uint96 defaultParentHolderFeeBps;
-        address alternativeGovernorImpl;
         uint32 recoveryParentTokenOwnerVotingWeight;
         bool allowAnyVotingToken;
         bool parentOwnerCanSetERC173Owner;
@@ -92,7 +91,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint96 defaultParentHolderFeeBps,
         bool allowAnyVotingToken,
         bool parentOwnerCanSetERC173Owner,
-        address alternativeGovernorImpl,
         uint32 recoveryParentTokenOwnerVotingWeight
     ) public {
         require(parentCollection != address(0), "RecoveryRegistry: collection cannot be zero address");
@@ -129,7 +127,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         settings.defaultParentHolderFeeBps = defaultParentHolderFeeBps;
         settings.allowAnyVotingToken = allowAnyVotingToken;
         settings.parentOwnerCanSetERC173Owner = parentOwnerCanSetERC173Owner;
-        settings.alternativeGovernorImpl = alternativeGovernorImpl;
         settings.recoveryParentTokenOwnerVotingWeight = recoveryParentTokenOwnerVotingWeight;
 
         emit RecoveryParentCollectionRegistered(parentCollection, settings);
@@ -145,7 +142,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint96 defaultParentHolderFeeBps,
         bool allowAnyVotingToken,
         bool parentOwnerCanSetERC173Owner,
-        address alternativeGovernorImpl,
         uint32 recoveryParentTokenOwnerVotingWeight
     ) public {
         require(parentCollection != address(0), "RecoveryRegistry: collection cannot be zero address");
@@ -174,7 +170,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         settings.defaultParentHolderFeeBps = defaultParentHolderFeeBps;
         settings.allowAnyVotingToken = allowAnyVotingToken;
         settings.parentOwnerCanSetERC173Owner = parentOwnerCanSetERC173Owner;
-        settings.alternativeGovernorImpl = alternativeGovernorImpl;
         settings.recoveryParentTokenOwnerVotingWeight = recoveryParentTokenOwnerVotingWeight;
 
         emit RecoveryParentCollectionSettingsUpdated(parentCollection, settings);
@@ -229,12 +224,8 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             parentTokenId
         ];
 
-        address _governorImpl = settings.alternativeGovernorImpl != address(0)
-            ? settings.alternativeGovernorImpl
-            : governorImpl;
-
         addresses.collection = address(new RecoveryProxy(collectionImpl, ""));
-        addresses.governor = payable(address(new RecoveryProxy(_governorImpl, "")));
+        addresses.governor = payable(address(new RecoveryProxy(governorImpl, "")));
         addresses.treasury = payable(address(new RecoveryProxy(treasuryImpl, "")));
 
         address[] memory empty = new address[](0);
@@ -289,7 +280,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
         RecoveryTreasury(addresses.treasury).grantRole(
             RecoveryTreasury(addresses.treasury).EXECUTOR_ROLE(),
-            addresses.governor
+            address(0)
         );
         RecoveryTreasury(addresses.treasury).grantRole(
             RecoveryTreasury(addresses.treasury).CANCELLER_ROLE(),
@@ -299,18 +290,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             RecoveryTreasury(addresses.treasury).TIMELOCK_ADMIN_ROLE(),
             address(this)
         );
-        RecoveryGovernor(addresses.governor).grantRole(
-            RecoveryGovernor(addresses.governor).CANCELLER_ROLE(),
-            IERC173(parentTokenContract).owner()
-        );
-        RecoveryGovernor(addresses.governor).grantRole(
-            RecoveryGovernor(addresses.governor).DEFAULT_ADMIN_ROLE(),
-            IERC173(parentTokenContract).owner()
-        );
-        RecoveryGovernor(addresses.governor).renounceRole(
-            RecoveryGovernor(addresses.governor).DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
+        RecoveryGovernor(addresses.governor).transferOwnership(addresses.treasury);
         RecoveryCollection(addresses.collection).grantRole(
             RecoveryCollection(addresses.collection).ADMIN_ROLE(),
             addresses.treasury

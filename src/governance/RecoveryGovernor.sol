@@ -8,7 +8,7 @@ import "@openzeppelin-upgradeable/contracts/governance/extensions/GovernorVotesU
 import "@openzeppelin-upgradeable/contracts/governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../common/RecoveryChildV1.sol";
 
@@ -20,13 +20,10 @@ contract RecoveryGovernor is
     GovernorVotesUpgradeable,
     GovernorVotesQuorumFractionUpgradeable,
     GovernorTimelockControlUpgradeable,
-    AccessControlUpgradeable,
+    OwnableUpgradeable,
     UUPSUpgradeable,
     RecoveryChildV1
 {
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant CANCELLER_ROLE = keccak256("CANCELLER_ROLE");
-
     uint32 public recoveryParentTokenOwnerVotingWeight;
     mapping(uint256 => bool) public recoveryParentTokenOwnerVotedOnProposal;
 
@@ -51,25 +48,14 @@ contract RecoveryGovernor is
         __GovernorVotes_init(_token);
         __GovernorVotesQuorumFraction_init(4);
         __GovernorTimelockControl_init(_timelock);
-        __AccessControl_init();
+        __Ownable_init();
         __UUPSUpgradeable_init();
         __RecoveryChildV1_init(_recoveryParentTokenContract, _recoveryParentTokenId);
-
-        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         recoveryParentTokenOwnerVotingWeight = _recoveryParentTokenOwnerVotingWeight;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
-
-    function cancel(
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 descriptionHash
-    ) public onlyRole(CANCELLER_ROLE) returns (uint256) {
-        return _cancel(targets, values, calldatas, descriptionHash);
-    }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function votingDelay() public view override(IGovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
         return super.votingDelay();
@@ -173,7 +159,7 @@ contract RecoveryGovernor is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(AccessControlUpgradeable, GovernorUpgradeable, GovernorTimelockControlUpgradeable, RecoveryChildV1)
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable, RecoveryChildV1)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
