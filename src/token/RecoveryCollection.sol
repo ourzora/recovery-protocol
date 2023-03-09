@@ -33,10 +33,10 @@ contract RecoveryCollection is
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     address payable public constant DEFAULT_PARENT_OWNER_ADDRESS = payable(0x1111111111111111111111111111111111111111);
-    IOperatorFilterRegistry public immutable operatorFilterRegistry =
+    IOperatorFilterRegistry public constant operatorFilterRegistry =
         IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
-    address public marketFilterDAOAddress;
+    address public constant marketFilterDAOAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
     address public erc173Owner;
     bool public parentOwnerCanSetERC173Owner;
 
@@ -50,7 +50,6 @@ contract RecoveryCollection is
         address _recoveryParentTokenContract,
         uint256 _recoveryParentTokenId,
         uint96 _defaultFeeNumerator,
-        address _marketFilterDAOAddress,
         bool _parentOwnerCanSetERC173Owner
     ) public initializer {
         __ERC721_init(_name, _symbol);
@@ -67,7 +66,6 @@ contract RecoveryCollection is
         _setDefaultRoyalty(DEFAULT_PARENT_OWNER_ADDRESS, _defaultFeeNumerator);
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
-        marketFilterDAOAddress = _marketFilterDAOAddress;
         parentOwnerCanSetERC173Owner = _parentOwnerCanSetERC173Owner;
     }
 
@@ -104,11 +102,12 @@ contract RecoveryCollection is
         _setTokenRoyalty(tokenId, receiver, feeNumerator);
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
-    {
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 batchSize
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
         if (from != _msgSender() && address(operatorFilterRegistry).code.length > 0) {
             require(operatorFilterRegistry.isOperatorAllowed(address(this), msg.sender), "operator not allowed");
         }
@@ -145,7 +144,6 @@ contract RecoveryCollection is
 
     function manageMarketFilterDAOSubscription(bool enable) external onlyRole(ADMIN_ROLE) {
         address self = address(this);
-        require(marketFilterDAOAddress != address(0), "DAO not set");
         if (!operatorFilterRegistry.isRegistered(self) && enable) {
             operatorFilterRegistry.registerAndSubscribe(self, marketFilterDAOAddress);
         } else if (enable) {
@@ -162,10 +160,12 @@ contract RecoveryCollection is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
 
-    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
-        internal
-        override(ERC721Upgradeable, ERC721VotesUpgradeable)
-    {
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 batchSize
+    ) internal override(ERC721Upgradeable, ERC721VotesUpgradeable) {
         super._afterTokenTransfer(from, to, tokenId, batchSize);
     }
 
@@ -173,16 +173,15 @@ contract RecoveryCollection is
         super._burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(
+        bytes4 interfaceId
+    )
         public
         view
         override(

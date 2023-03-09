@@ -32,7 +32,7 @@ contract RecoveryGovernor is
     }
 
     function initialize(
-        IVotesUpgradeable _token,
+        address _token,
         TimelockControllerUpgradeable _timelock,
         string calldata _governorName,
         uint256 _initialVotingDelay,
@@ -45,7 +45,7 @@ contract RecoveryGovernor is
         __Governor_init(_governorName);
         __GovernorSettings_init(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold);
         __GovernorCountingSimple_init();
-        __GovernorVotes_init(_token);
+        __GovernorVotes_init(IVotesUpgradeable(_token));
         __GovernorVotesQuorumFraction_init(4);
         __GovernorTimelockControl_init(_timelock);
         __Ownable_init();
@@ -65,21 +65,15 @@ contract RecoveryGovernor is
         return super.votingPeriod();
     }
 
-    function quorum(uint256 blockNumber)
-        public
-        view
-        override(IGovernorUpgradeable, GovernorVotesQuorumFractionUpgradeable)
-        returns (uint256)
-    {
+    function quorum(
+        uint256 blockNumber
+    ) public view override(IGovernorUpgradeable, GovernorVotesQuorumFractionUpgradeable) returns (uint256) {
         return super.quorum(blockNumber);
     }
 
-    function state(uint256 proposalId)
-        public
-        view
-        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
-        returns (ProposalState)
-    {
+    function state(
+        uint256 proposalId
+    ) public view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (ProposalState) {
         return super.state(proposalId);
     }
 
@@ -92,11 +86,13 @@ contract RecoveryGovernor is
         return super.propose(targets, values, calldatas, description);
     }
 
-    function _castVote(uint256 proposalId, address account, uint8 support, string memory reason, bytes memory params)
-        internal
-        override
-        returns (uint256)
-    {
+    function _castVote(
+        uint256 proposalId,
+        address account,
+        uint8 support,
+        string memory reason,
+        bytes memory params
+    ) internal override returns (uint256) {
         require(state(proposalId) == ProposalState.Active, "Governor: vote not currently active");
 
         uint256 weight = _getVotes(account, proposalSnapshot(proposalId), params);
@@ -156,12 +152,9 @@ contract RecoveryGovernor is
         return super._executor();
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable, RecoveryChildV1)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable, RecoveryChildV1) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
