@@ -89,7 +89,5 @@ contract RecoveryTest is Test {
 
         assertEq(collection.balanceOf(tombHolder), 1);
         assertEq(collection.tokenURI(0), "https://test.com");
-
-        assertEq(abi.encodeWithSignature("initialize()"), bytes(""));
     }
 }
