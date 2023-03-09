@@ -180,7 +180,7 @@ library Address {
     function sendValue(address payable recipient, uint256 amount) internal {
         require(address(this).balance >= amount, "Address: insufficient balance");
 
-        (bool success, ) = recipient.call{value: amount}("");
+        (bool success, ) = recipient.call{ value: amount }("");
         require(success, "Address: unable to send value, recipient may have reverted");
     }
 
@@ -212,11 +212,10 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(
-        address target,
-        bytes memory data,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
+    function functionCall(address target, bytes memory data, string memory errorMessage)
+        internal
+        returns (bytes memory)
+    {
         return functionCallWithValue(target, data, 0, errorMessage);
     }
 
@@ -231,11 +230,7 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value
-    ) internal returns (bytes memory) {
+    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
         return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
     }
 
@@ -245,14 +240,12 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
+    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage)
+        internal
+        returns (bytes memory)
+    {
         require(address(this).balance >= value, "Address: insufficient balance for call");
-        (bool success, bytes memory returndata) = target.call{value: value}(data);
+        (bool success, bytes memory returndata) = target.call{ value: value }(data);
         return verifyCallResultFromTarget(target, success, returndata, errorMessage);
     }
 
@@ -272,11 +265,11 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(
-        address target,
-        bytes memory data,
-        string memory errorMessage
-    ) internal view returns (bytes memory) {
+    function functionStaticCall(address target, bytes memory data, string memory errorMessage)
+        internal
+        view
+        returns (bytes memory)
+    {
         (bool success, bytes memory returndata) = target.staticcall(data);
         return verifyCallResultFromTarget(target, success, returndata, errorMessage);
     }
@@ -297,11 +290,10 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(
-        address target,
-        bytes memory data,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
+    function functionDelegateCall(address target, bytes memory data, string memory errorMessage)
+        internal
+        returns (bytes memory)
+    {
         (bool success, bytes memory returndata) = target.delegatecall(data);
         return verifyCallResultFromTarget(target, success, returndata, errorMessage);
     }
@@ -336,11 +328,11 @@ library Address {
      *
      * _Available since v4.3._
      */
-    function verifyCallResult(
-        bool success,
-        bytes memory returndata,
-        string memory errorMessage
-    ) internal pure returns (bytes memory) {
+    function verifyCallResult(bool success, bytes memory returndata, string memory errorMessage)
+        internal
+        pure
+        returns (bytes memory)
+    {
         if (success) {
             return returndata;
         } else {
@@ -503,11 +495,7 @@ abstract contract ERC1967Upgrade {
      *
      * Emits an {Upgraded} event.
      */
-    function _upgradeToAndCall(
-        address newImplementation,
-        bytes memory data,
-        bool forceCall
-    ) internal {
+    function _upgradeToAndCall(address newImplementation, bytes memory data, bool forceCall) internal {
         _upgradeTo(newImplementation);
         if (data.length > 0 || forceCall) {
             Address.functionDelegateCall(newImplementation, data);
@@ -519,11 +507,7 @@ abstract contract ERC1967Upgrade {
      *
      * Emits an {Upgraded} event.
      */
-    function _upgradeToAndCallUUPS(
-        address newImplementation,
-        bytes memory data,
-        bool forceCall
-    ) internal {
+    function _upgradeToAndCallUUPS(address newImplementation, bytes memory data, bool forceCall) internal {
         // Upgrades from old implementations will perform a rollback test. This test requires the new
         // implementation to upgrade back to the old, non-ERC1822 compliant, implementation. Removing
         // this special case will break upgrade paths from old UUPS implementation to new ones.
@@ -612,11 +596,7 @@ abstract contract ERC1967Upgrade {
      *
      * Emits a {BeaconUpgraded} event.
      */
-    function _upgradeBeaconToAndCall(
-        address newBeacon,
-        bytes memory data,
-        bool forceCall
-    ) internal {
+    function _upgradeBeaconToAndCall(address newBeacon, bytes memory data, bool forceCall) internal {
         _setBeacon(newBeacon);
         emit BeaconUpgraded(newBeacon);
         if (data.length > 0 || forceCall) {
@@ -653,4 +633,3 @@ contract ERC1967Proxy is Proxy, ERC1967Upgrade {
 contract RecoveryProxy is ERC1967Proxy {
     constructor(address _logic, bytes memory _data) ERC1967Proxy(_logic, _data) {}
 }
-

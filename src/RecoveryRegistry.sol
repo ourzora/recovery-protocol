@@ -167,9 +167,11 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         return recoverySettingsForParentCollection[collection].votingPeriod > 0;
     }
 
-    function getRecoveryParentCollectionDefaultSettings(
-        address collection
-    ) public view returns (RecoveryParentCollectionDefaultSettings memory) {
+    function getRecoveryParentCollectionDefaultSettings(address collection)
+        public
+        view
+        returns (RecoveryParentCollectionDefaultSettings memory)
+    {
         require(parentCollectionIsRegistered(collection), "RecoveryRegistry: collection not registered");
         return recoverySettingsForParentCollection[collection];
     }
@@ -294,17 +296,19 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
     }
 
-    function recoveryCollectionExistsForParentToken(
-        address parentTokenContract,
-        uint256 parentTokenId
-    ) public view returns (bool) {
+    function recoveryCollectionExistsForParentToken(address parentTokenContract, uint256 parentTokenId)
+        public
+        view
+        returns (bool)
+    {
         return recoveryCollectionAddressesForParentToken[parentTokenContract][parentTokenId].collection != address(0);
     }
 
-    function getRecoveryAddressesForParentToken(
-        address parentTokenContract,
-        uint256 parentTokenId
-    ) public view returns (RecoveryCollectionAddresses memory) {
+    function getRecoveryAddressesForParentToken(address parentTokenContract, uint256 parentTokenId)
+        public
+        view
+        returns (RecoveryCollectionAddresses memory)
+    {
         require(
             recoveryCollectionExistsForParentToken(parentTokenContract, parentTokenId),
             "RecoveryRegistry: recovery does not exist"

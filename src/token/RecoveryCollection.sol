@@ -102,12 +102,11 @@ contract RecoveryCollection is
         _setTokenRoyalty(tokenId, receiver, feeNumerator);
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
+    {
         if (from != _msgSender() && address(operatorFilterRegistry).code.length > 0) {
             require(operatorFilterRegistry.isOperatorAllowed(address(this), msg.sender), "operator not allowed");
         }
@@ -160,12 +159,10 @@ contract RecoveryCollection is
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal override(ERC721Upgradeable, ERC721VotesUpgradeable) {
+    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+        internal
+        override(ERC721Upgradeable, ERC721VotesUpgradeable)
+    {
         super._afterTokenTransfer(from, to, tokenId, batchSize);
     }
 
@@ -173,15 +170,16 @@ contract RecoveryCollection is
         super._burn(tokenId);
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
+        returns (string memory)
+    {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    )
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         override(
