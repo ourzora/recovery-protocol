@@ -15,9 +15,3 @@ test = "test"
 [profile.ci]
 fuzz = { runs = 1_000 }
 verbosity = 4
-
-[rpc_endpoints]
-goerli = "${GOERLI_RPC_URL}"
-
-[etherscan]
-goerli = { key = "${ETHERSCAN_API_KEY}" }
