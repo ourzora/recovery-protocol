@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { Test } from "forge-std/Test.sol";
-import { GovernorCountingSimple } from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
-import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
+import {Test} from "forge-std/Test.sol";
+import {GovernorCountingSimple} from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
+import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 
-import { RecoveryProxy } from "../src/upgradeability/RecoveryProxy.sol";
-import { RecoveryRegistry } from "../src/RecoveryRegistry.sol";
-import { RecoveryCollection } from "../src/token/RecoveryCollection.sol";
-import { RecoveryGovernor } from "../src/governance/RecoveryGovernor.sol";
-import { RecoveryTreasury } from "../src/governance/RecoveryTreasury.sol";
-import { MockVoting721 } from "./mocks/MockVoting721.sol";
+import {RecoveryProxy} from "../src/upgradeability/RecoveryProxy.sol";
+import {RecoveryRegistry} from "../src/RecoveryRegistry.sol";
+import {RecoveryCollection} from "../src/token/RecoveryCollection.sol";
+import {RecoveryGovernor} from "../src/governance/RecoveryGovernor.sol";
+import {RecoveryTreasury} from "../src/governance/RecoveryTreasury.sol";
+import {MockVoting721} from "./mocks/MockVoting721.sol";
 
 contract RecoveryTest is Test {
     RecoveryRegistry registry;
@@ -55,10 +55,8 @@ contract RecoveryTest is Test {
         vm.prank(tombHolder);
         registry.createRecoveryCollectionForParentToken(address(tomb), 0, address(indexMarker));
 
-        RecoveryRegistry.RecoveryCollectionAddresses memory addresses = registry.getRecoveryAddressesForParentToken(
-            address(tomb),
-            0
-        );
+        RecoveryRegistry.RecoveryCollectionAddresses memory addresses =
+            registry.getRecoveryAddressesForParentToken(address(tomb), 0);
         RecoveryCollection collection = RecoveryCollection(addresses.collection);
         RecoveryGovernor governor = RecoveryGovernor(addresses.governor);
         RecoveryTreasury treasury = RecoveryTreasury(addresses.treasury);
