@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
 import "../src/RecoveryRegistry.sol";
+import "../src/VoteAggregator.sol";
 import "../src/upgradeability/RecoveryProxy.sol";
 import "../src/governance/RecoveryGovernor.sol";
 import "../src/governance/RecoveryTreasury.sol";
@@ -18,6 +19,7 @@ contract DeployRecovery is Script {
         address governorImpl = address(new RecoveryGovernor());
         address collectionImpl = address(new RecoveryCollection());
         address registryImpl = address(new RecoveryRegistry(collectionImpl, governorImpl, treasuryImpl));
+        new VoteAggregator();
         RecoveryProxy registry = new RecoveryProxy(registryImpl, abi.encodeWithSignature("initialize()"));
 
         vm.stopBroadcast();
