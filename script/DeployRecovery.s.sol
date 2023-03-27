@@ -13,14 +13,12 @@ contract DeployRecovery is Script {
     function run() public {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        vm.startBroadcast(key);
-
         address treasuryImpl = address(new RecoveryTreasury());
         address governorImpl = address(new RecoveryGovernor());
         address collectionImpl = address(new RecoveryCollection());
         address registryImpl = address(new RecoveryRegistry(collectionImpl, governorImpl, treasuryImpl));
-        new VoteAggregator();
         RecoveryProxy registry = new RecoveryProxy(registryImpl, abi.encodeWithSignature("initialize()"));
+        // new VoteAggregator();
 
         vm.stopBroadcast();
     }
