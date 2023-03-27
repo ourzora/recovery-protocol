@@ -37,7 +37,9 @@ contract Bootstrap is Script {
         targets[0] = address(collection);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("safeMint(address,uint256,string)", 0x9aaC8cCDf50dD34d06DF661602076a07750941F6, 0, "https://test.com");
+        calldatas[0] = abi.encodeWithSignature(
+            "safeMint(address,string)", 0x9aaC8cCDf50dD34d06DF661602076a07750941F6, "https://test.com"
+        );
         governor.propose(targets, values, calldatas, "");
 
         vm.stopBroadcast();
