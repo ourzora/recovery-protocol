@@ -73,7 +73,7 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         targets[0] = address(collection);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("safeMint(address,uint256,string)", tombHolder, 0, "https://test.com");
+        calldatas[0] = abi.encodeWithSignature("safeMint(address,string)", tombHolder, "https://test.com");
         vm.startPrank(tombHolder);
         uint256 proposalId = governor.propose(targets, values, calldatas, "");
         vm.roll(block.number + 2);
@@ -94,7 +94,7 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         governor.execute(targets, values, calldatas, keccak256(bytes("")));
 
         assertEq(collection.balanceOf(tombHolder), 1);
-        assertEq(collection.tokenURI(0), "https://test.com");
+        assertEq(collection.tokenURI(1), "https://test.com");
     }
 
     function testVotingBySig() external {
@@ -114,7 +114,7 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         targets[0] = address(collection);
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSignature("safeMint(address,uint256,string)", tombHolder, 0, "https://test.com");
+        calldatas[0] = abi.encodeWithSignature("safeMint(address,string)", tombHolder, "https://test.com");
         vm.startPrank(tombHolder);
         uint256 proposalId = governor.propose(targets, values, calldatas, "");
         vm.roll(block.number + 2);

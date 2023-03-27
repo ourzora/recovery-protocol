@@ -39,6 +39,7 @@ contract RecoveryCollection is
     address public constant marketFilterDAOAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
     address public erc173Owner;
     bool public parentOwnerCanSetERC173Owner;
+    uint256 public nextTokenId;
 
     constructor() {
         _disableInitializers();
@@ -77,9 +78,10 @@ contract RecoveryCollection is
         _unpause();
     }
 
-    function safeMint(address to, uint256 tokenId, string memory uri) public onlyRole(ADMIN_ROLE) {
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function safeMint(address to, string memory uri) public onlyRole(ADMIN_ROLE) {
+        nextTokenId++;
+        _safeMint(to, nextTokenId);
+        _setTokenURI(nextTokenId, uri);
     }
 
     function burn(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
