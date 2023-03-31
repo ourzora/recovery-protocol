@@ -66,7 +66,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         treasuryImpl = _treasuryImpl;
     }
 
-    function initialize() public initializer {
+    function __RecoveryRegistry_init() public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
     }
@@ -224,7 +224,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             address(this)
         );
 
-        RecoveryCollection(addresses.collection).initialize(
+        RecoveryCollection(addresses.collection).__RecoveryCollection_init(
             string.concat(
                 IERC721MetadataUpgradeable(parentTokenContract).name(),
                 "-",
@@ -243,7 +243,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             settings.parentOwnerCanSetERC173Owner
         );
 
-        RecoveryGovernor(addresses.governor).initialize(
+        RecoveryGovernor(addresses.governor).__RecoveryGovernor_init(
             votingToken,
             TimelockControllerUpgradeable(addresses.treasury),
             string.concat(
@@ -315,4 +315,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
         return recoveryCollectionAddressesForParentToken[parentTokenContract][parentTokenId];
     }
+
+    // extra storage
+    uint256[50] private __gap;
 }

@@ -35,7 +35,9 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         address treasuryImpl = address(new RecoveryTreasury());
         address registryImpl = address(new RecoveryRegistry(collectionImpl, governorImpl, treasuryImpl));
         vm.prank(registryAdmin);
-        registry = RecoveryRegistry(address(new RecoveryProxy(registryImpl, abi.encodeWithSignature("initialize()"))));
+        registry = RecoveryRegistry(
+            address(new RecoveryProxy(registryImpl, abi.encodeWithSignature("__RecoveryRegistry_init()")))
+        );
         (voter, voterPrivateKey) = makeAddrAndKey("voter");
 
         vm.startPrank(tombDeployer);

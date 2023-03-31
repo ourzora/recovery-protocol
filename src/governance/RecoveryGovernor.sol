@@ -31,7 +31,7 @@ contract RecoveryGovernor is
         _disableInitializers();
     }
 
-    function initialize(
+    function __RecoveryGovernor_init(
         address _token,
         TimelockControllerUpgradeable _timelock,
         string calldata _governorName,
@@ -164,4 +164,7 @@ contract RecoveryGovernor is
     {
         return super.supportsInterface(interfaceId);
     }
+
+    // extra storage
+    uint256[50] private __gap;
 }

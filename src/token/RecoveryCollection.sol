@@ -45,7 +45,7 @@ contract RecoveryCollection is
         _disableInitializers();
     }
 
-    function initialize(
+    function __RecoveryCollection_init(
         string calldata _name,
         string calldata _symbol,
         address _recoveryParentTokenContract,
@@ -195,4 +195,7 @@ contract RecoveryCollection is
     {
         return interfaceId == type(IERC173).interfaceId || super.supportsInterface(interfaceId);
     }
+
+    // extra storage
+    uint256[50] private __gap;
 }
