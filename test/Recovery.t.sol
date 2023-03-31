@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {Test} from "forge-std/Test.sol";
-import {GovernorCountingSimple} from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
-import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
-import {EIP712Upgradeable} from "@openzeppelin-upgradeable/contracts/utils/cryptography/EIP712Upgradeable.sol";
+import { Test } from "forge-std/Test.sol";
+import { GovernorCountingSimple } from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
+import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
+import { EIP712Upgradeable } from "@openzeppelin-upgradeable/contracts/utils/cryptography/EIP712Upgradeable.sol";
 
-import {RecoveryProxy} from "../src/upgradeability/RecoveryProxy.sol";
-import {RecoveryRegistry} from "../src/RecoveryRegistry.sol";
-import {VoteAggregator} from "../src/VoteAggregator.sol";
-import {RecoveryCollection} from "../src/token/RecoveryCollection.sol";
-import {RecoveryGovernor} from "../src/governance/RecoveryGovernor.sol";
-import {RecoveryTreasury} from "../src/governance/RecoveryTreasury.sol";
-import {MockVoting721} from "./mocks/MockVoting721.sol";
+import { RecoveryProxy } from "../src/upgradeability/RecoveryProxy.sol";
+import { RecoveryRegistry } from "../src/RecoveryRegistry.sol";
+import { VoteAggregator } from "../src/VoteAggregator.sol";
+import { RecoveryCollection } from "../src/token/RecoveryCollection.sol";
+import { RecoveryGovernor } from "../src/governance/RecoveryGovernor.sol";
+import { RecoveryTreasury } from "../src/governance/RecoveryTreasury.sol";
+import { MockVoting721 } from "./mocks/MockVoting721.sol";
 
 contract RecoveryTest is Test, EIP712Upgradeable {
     RecoveryRegistry registry;
@@ -63,8 +63,10 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         vm.prank(tombHolder);
         registry.createRecoveryCollectionForParentToken(address(tomb), 0, address(indexMarker));
 
-        RecoveryRegistry.RecoveryCollectionAddresses memory addresses =
-            registry.getRecoveryAddressesForParentToken(address(tomb), 0);
+        RecoveryRegistry.RecoveryCollectionAddresses memory addresses = registry.getRecoveryAddressesForParentToken(
+            address(tomb),
+            0
+        );
         RecoveryCollection collection = RecoveryCollection(addresses.collection);
         RecoveryGovernor governor = RecoveryGovernor(addresses.governor);
         RecoveryTreasury treasury = RecoveryTreasury(addresses.treasury);
@@ -77,18 +79,19 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         vm.startPrank(tombHolder);
         uint256 proposalId = governor.propose(targets, values, calldatas, "");
         vm.roll(block.number + 2);
-        governor.castVote(proposalId, uint8(GovernorCountingSimple.VoteType.For));
+        uint256 parentOwnerWeight = governor.castVote(proposalId, uint8(GovernorCountingSimple.VoteType.For));
+        assertEq(parentOwnerWeight, 11);
         vm.stopPrank();
 
         vm.prank(voter);
-        governor.castVote(proposalId, uint8(GovernorCountingSimple.VoteType.For));
+        uint256 voterWeight = governor.castVote(proposalId, uint8(GovernorCountingSimple.VoteType.For));
+        assertEq(voterWeight, 2);
 
         vm.roll(block.number + 50400);
         assertGt(block.number, governor.proposalDeadline(proposalId));
         assertEq(uint8(governor.state(proposalId)), uint8(IGovernor.ProposalState.Succeeded));
 
         vm.prank(tombDeployer);
-        // governor.execute(targets, values, calldatas, keccak256(bytes("")));
         governor.queue(targets, values, calldatas, keccak256(bytes("")));
         vm.warp(block.timestamp + 172800);
         governor.execute(targets, values, calldatas, keccak256(bytes("")));
@@ -104,8 +107,10 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         vm.prank(tombHolder);
         registry.createRecoveryCollectionForParentToken(address(tomb), 0, address(indexMarker));
 
-        RecoveryRegistry.RecoveryCollectionAddresses memory addresses =
-            registry.getRecoveryAddressesForParentToken(address(tomb), 0);
+        RecoveryRegistry.RecoveryCollectionAddresses memory addresses = registry.getRecoveryAddressesForParentToken(
+            address(tomb),
+            0
+        );
         RecoveryCollection collection = RecoveryCollection(addresses.collection);
         RecoveryGovernor governor = RecoveryGovernor(addresses.governor);
         RecoveryTreasury treasury = RecoveryTreasury(addresses.treasury);
@@ -126,8 +131,11 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         uint8[] memory _supportOptions = new uint8[](1);
         _supportOptions[0] = uint8(GovernorCountingSimple.VoteType.For);
 
-        (uint8 v, bytes32 r, bytes32 s) =
-            voteSignature(voterPrivateKey, proposalId, uint8(GovernorCountingSimple.VoteType.For));
+        (uint8 v, bytes32 r, bytes32 s) = voteSignature(
+            voterPrivateKey,
+            proposalId,
+            uint8(GovernorCountingSimple.VoteType.For)
+        );
         uint8[] memory _v = new uint8[](1);
         _v[0] = v;
         bytes32[] memory _r = new bytes32[](1);
@@ -137,10 +145,11 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         aggregator.castVotes(_contracts, _proposalIds, _supportOptions, _v, _r, _s);
     }
 
-    function voteSignature(uint256 privateKey, uint256 proposalId, uint8 support)
-        internal
-        returns (uint8 v, bytes32 r, bytes32 s)
-    {
+    function voteSignature(
+        uint256 privateKey,
+        uint256 proposalId,
+        uint8 support
+    ) internal returns (uint8 v, bytes32 r, bytes32 s) {
         bytes32 h = _hashTypedDataV4(keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support)));
 
         return vm.sign(privateKey, h);
