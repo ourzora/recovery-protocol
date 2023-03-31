@@ -12,6 +12,3 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
-[submodule "lib/zora-drops-contracts"]
-	path = lib/zora-drops-contracts
-	url = https://github.com/ourzora/zora-drops-contracts

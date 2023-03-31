@@ -20,8 +20,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     address public immutable governorImpl;
     address public immutable treasuryImpl;
 
-    address public marketFilterDAOAddress;
-
     mapping(address => RecoveryParentCollectionDefaultSettings) internal recoverySettingsForParentCollection;
     mapping(address => mapping(uint256 => RecoveryCollectionAddresses))
         internal recoveryCollectionAddressesForParentToken;
@@ -31,8 +29,9 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint256 votingPeriod;
         uint256 proposalThreshold;
         uint256 timelockDelay;
-        IVotesUpgradeable votingToken;
+        address votingToken;
         uint96 defaultParentHolderFeeBps;
+        uint32 recoveryParentTokenOwnerVotingWeight;
         bool allowAnyVotingToken;
         bool parentOwnerCanSetERC173Owner;
     }
@@ -67,15 +66,9 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         treasuryImpl = _treasuryImpl;
     }
 
-    function initialize(address _marketFilterDAOAddress) public initializer {
+    function initialize() public initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
-
-        marketFilterDAOAddress = _marketFilterDAOAddress;
-    }
-
-    function setMarketFilterDAOAddress(address _marketFilterDAOAddress) public onlyOwner {
-        marketFilterDAOAddress = _marketFilterDAOAddress;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
@@ -83,13 +76,14 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     function registerParentCollection(
         address parentCollection,
         address votingToken,
-        uint256 votingDelay,
-        uint256 votingPeriod,
-        uint256 timelockDelay,
+        uint256 votingDelay, // delay before voting starts in blocks
+        uint256 votingPeriod, // voting period in blocks
+        uint256 timelockDelay, // delay before timelock can be executed in seconds
         uint256 proposalThreshold,
         uint96 defaultParentHolderFeeBps,
         bool allowAnyVotingToken,
-        bool parentOwnerCanSetERC173Owner
+        bool parentOwnerCanSetERC173Owner,
+        uint32 recoveryParentTokenOwnerVotingWeight
     ) public {
         require(parentCollection != address(0), "RecoveryRegistry: collection cannot be zero address");
         require(
@@ -98,9 +92,8 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
         require(votingPeriod > 0, "RecoveryRegistry: voting period must be greater than zero");
         require(
-            IERC165Upgradeable(parentCollection).supportsInterface(type(IERC721Upgradeable).interfaceId) &&
-                IERC165Upgradeable(parentCollection).supportsInterface(type(IERC173).interfaceId),
-            "RecoveryRegistry: collection is not an Ownable ERC721"
+            IERC165Upgradeable(parentCollection).supportsInterface(type(IERC721Upgradeable).interfaceId),
+            "RecoveryRegistry: collection does not support ERC721"
         );
         require(_msgSender() == IERC173(parentCollection).owner(), "RecoveryRegistry: caller not collection owner");
         require(
@@ -112,12 +105,9 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             parentCollection
         ];
 
-        require(
-            settings.votingToken == IVotesUpgradeable(address(0)),
-            "RecoveryRegistry: collection already registered"
-        );
+        require(settings.votingToken == address(0), "RecoveryRegistry: collection already registered");
 
-        settings.votingToken = IVotesUpgradeable(votingToken);
+        settings.votingToken = votingToken;
         settings.votingDelay = votingDelay;
         settings.votingPeriod = votingPeriod;
         settings.timelockDelay = timelockDelay;
@@ -125,6 +115,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         settings.defaultParentHolderFeeBps = defaultParentHolderFeeBps;
         settings.allowAnyVotingToken = allowAnyVotingToken;
         settings.parentOwnerCanSetERC173Owner = parentOwnerCanSetERC173Owner;
+        settings.recoveryParentTokenOwnerVotingWeight = recoveryParentTokenOwnerVotingWeight;
 
         emit RecoveryParentCollectionRegistered(parentCollection, settings);
     }
@@ -138,7 +129,8 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint256 proposalThreshold,
         uint96 defaultParentHolderFeeBps,
         bool allowAnyVotingToken,
-        bool parentOwnerCanSetERC173Owner
+        bool parentOwnerCanSetERC173Owner,
+        uint32 recoveryParentTokenOwnerVotingWeight
     ) public {
         require(parentCollection != address(0), "RecoveryRegistry: collection cannot be zero address");
         require(
@@ -158,7 +150,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 
         require(parentCollectionIsRegistered(parentCollection), "RecoveryRegistry: collection already registered");
 
-        settings.votingToken = IVotesUpgradeable(votingToken);
+        settings.votingToken = votingToken;
         settings.votingDelay = votingDelay;
         settings.votingPeriod = votingPeriod;
         settings.timelockDelay = timelockDelay;
@@ -166,6 +158,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         settings.defaultParentHolderFeeBps = defaultParentHolderFeeBps;
         settings.allowAnyVotingToken = allowAnyVotingToken;
         settings.parentOwnerCanSetERC173Owner = parentOwnerCanSetERC173Owner;
+        settings.recoveryParentTokenOwnerVotingWeight = recoveryParentTokenOwnerVotingWeight;
 
         emit RecoveryParentCollectionSettingsUpdated(parentCollection, settings);
     }
@@ -186,7 +179,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     function createRecoveryCollectionForParentToken(
         address parentTokenContract,
         uint256 parentTokenId,
-        IVotesUpgradeable _votingToken
+        address _votingToken
     ) public {
         require(
             parentCollectionIsRegistered(parentTokenContract),
@@ -206,12 +199,12 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             parentTokenContract
         ];
 
-        IVotesUpgradeable votingToken = _votingToken;
-        if (address(votingToken) == address(0)) {
-            require(address(settings.votingToken) != address(0), "RecoveryRegistry: voting token not set");
+        address votingToken = _votingToken;
+        if (votingToken == address(0)) {
+            require(settings.votingToken != address(0), "RecoveryRegistry: voting token not set");
             votingToken = settings.votingToken;
         }
-        if (address(votingToken) != address(settings.votingToken)) {
+        if (votingToken != settings.votingToken) {
             require(settings.allowAnyVotingToken, "RecoveryRegistry: voting token not allowed");
         }
 
@@ -247,7 +240,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             parentTokenContract,
             parentTokenId,
             settings.defaultParentHolderFeeBps,
-            marketFilterDAOAddress,
             settings.parentOwnerCanSetERC173Owner
         );
 
@@ -264,7 +256,8 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             settings.votingPeriod,
             settings.proposalThreshold,
             parentTokenContract,
-            parentTokenId
+            parentTokenId,
+            settings.recoveryParentTokenOwnerVotingWeight
         );
 
         // roles
@@ -274,7 +267,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
         RecoveryTreasury(addresses.treasury).grantRole(
             RecoveryTreasury(addresses.treasury).EXECUTOR_ROLE(),
-            addresses.governor
+            address(0)
         );
         RecoveryTreasury(addresses.treasury).grantRole(
             RecoveryTreasury(addresses.treasury).CANCELLER_ROLE(),
@@ -284,18 +277,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             RecoveryTreasury(addresses.treasury).TIMELOCK_ADMIN_ROLE(),
             address(this)
         );
-        RecoveryGovernor(addresses.governor).grantRole(
-            RecoveryGovernor(addresses.governor).CANCELLER_ROLE(),
-            IERC173(parentTokenContract).owner()
-        );
-        RecoveryGovernor(addresses.governor).grantRole(
-            RecoveryGovernor(addresses.governor).DEFAULT_ADMIN_ROLE(),
-            IERC173(parentTokenContract).owner()
-        );
-        RecoveryGovernor(addresses.governor).renounceRole(
-            RecoveryGovernor(addresses.governor).DEFAULT_ADMIN_ROLE(),
-            address(this)
-        );
+        RecoveryGovernor(addresses.governor).transferOwnership(addresses.treasury);
         RecoveryCollection(addresses.collection).grantRole(
             RecoveryCollection(addresses.collection).ADMIN_ROLE(),
             addresses.treasury

@@ -8,16 +8,10 @@ libs = ["lib"]
 optimizer = true
 optimizer_runs = 30
 out = "out"
-solc = "0.8.17"
+solc = "0.8.19"
 src = "src"
 test = "test"
 
 [profile.ci]
-fuzz = { runs = 1_000 }
+fuzz = { runs = 250_000 }
 verbosity = 4
-
-[rpc_endpoints]
-goerli = "${GOERLI_RPC_URL}"
-
-[etherscan]
-goerli = { key = "${ETHERSCAN_API_KEY}" }

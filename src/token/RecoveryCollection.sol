@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/proxy/utils/Initializable.sol";
@@ -12,7 +12,7 @@ import "@openzeppelin-upgradeable/contracts/token/ERC721/extensions/ERC721URISto
 import "@openzeppelin-upgradeable/contracts/token/ERC721/extensions/ERC721VotesUpgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin-upgradeable/contracts/utils/cryptography/EIP712Upgradeable.sol";
-import "zora-drops-contracts/interfaces/IOperatorFilterRegistry.sol";
+import "../utils/IOperatorFilterRegistry.sol";
 import "../utils/IERC173.sol";
 import "../common/RecoveryChildV1.sol";
 
@@ -33,12 +33,13 @@ contract RecoveryCollection is
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     address payable public constant DEFAULT_PARENT_OWNER_ADDRESS = payable(0x1111111111111111111111111111111111111111);
-    IOperatorFilterRegistry immutable operatorFilterRegistry =
+    IOperatorFilterRegistry public constant operatorFilterRegistry =
         IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
-    address public marketFilterDAOAddress;
+    address public constant marketFilterDAOAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
     address public erc173Owner;
     bool public parentOwnerCanSetERC173Owner;
+    uint256 public nextTokenId;
 
     constructor() {
         _disableInitializers();
@@ -50,7 +51,6 @@ contract RecoveryCollection is
         address _recoveryParentTokenContract,
         uint256 _recoveryParentTokenId,
         uint96 _defaultFeeNumerator,
-        address _marketFilterDAOAddress,
         bool _parentOwnerCanSetERC173Owner
     ) public initializer {
         __ERC721_init(_name, _symbol);
@@ -67,7 +67,6 @@ contract RecoveryCollection is
         _setDefaultRoyalty(DEFAULT_PARENT_OWNER_ADDRESS, _defaultFeeNumerator);
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
-        marketFilterDAOAddress = _marketFilterDAOAddress;
         parentOwnerCanSetERC173Owner = _parentOwnerCanSetERC173Owner;
     }
 
@@ -79,9 +78,10 @@ contract RecoveryCollection is
         _unpause();
     }
 
-    function safeMint(address to, uint256 tokenId, string memory uri) public onlyRole(ADMIN_ROLE) {
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function safeMint(address to, string memory uri) public onlyRole(ADMIN_ROLE) {
+        nextTokenId++;
+        _safeMint(to, nextTokenId);
+        _setTokenURI(nextTokenId, uri);
     }
 
     function burn(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
@@ -145,7 +145,6 @@ contract RecoveryCollection is
 
     function manageMarketFilterDAOSubscription(bool enable) external onlyRole(ADMIN_ROLE) {
         address self = address(this);
-        require(marketFilterDAOAddress != address(0), "DAO not set");
         if (!operatorFilterRegistry.isRegistered(self) && enable) {
             operatorFilterRegistry.registerAndSubscribe(self, marketFilterDAOAddress);
         } else if (enable) {
