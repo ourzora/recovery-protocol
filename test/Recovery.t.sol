@@ -145,11 +145,10 @@ contract RecoveryTest is Test, EIP712Upgradeable {
         aggregator.castVotes(_contracts, _proposalIds, _supportOptions, _v, _r, _s);
     }
 
-    function voteSignature(
-        uint256 privateKey,
-        uint256 proposalId,
-        uint8 support
-    ) internal returns (uint8 v, bytes32 r, bytes32 s) {
+    function voteSignature(uint256 privateKey, uint256 proposalId, uint8 support)
+        internal
+        returns (uint8 v, bytes32 r, bytes32 s)
+    {
         bytes32 h = _hashTypedDataV4(keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support)));
 
         return vm.sign(privateKey, h);

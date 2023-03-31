@@ -28,8 +28,10 @@ contract Bootstrap is Script {
             registry.createRecoveryCollectionForParentToken(address(beacon), i, address(marker));
         }
 
-        RecoveryRegistry.RecoveryCollectionAddresses memory addresses =
-            registry.getRecoveryAddressesForParentToken(address(beacon), 4);
+        RecoveryRegistry.RecoveryCollectionAddresses memory addresses = registry.getRecoveryAddressesForParentToken(
+            address(beacon),
+            4
+        );
         RecoveryCollection collection = RecoveryCollection(addresses.collection);
         RecoveryGovernor governor = RecoveryGovernor(addresses.governor);
 
@@ -38,7 +40,9 @@ contract Bootstrap is Script {
         uint256[] memory values = new uint256[](1);
         bytes[] memory calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSignature(
-            "safeMint(address,string)", 0x9aaC8cCDf50dD34d06DF661602076a07750941F6, "https://test.com"
+            "safeMint(address,string)",
+            0x9aaC8cCDf50dD34d06DF661602076a07750941F6,
+            "https://test.com"
         );
         governor.propose(targets, values, calldatas, "");
 

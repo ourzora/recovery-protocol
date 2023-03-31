@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {IGovernorUpgradeable} from "@openzeppelin-upgradeable/contracts/governance/IGovernorUpgradeable.sol";
+import { IGovernorUpgradeable } from "@openzeppelin-upgradeable/contracts/governance/IGovernorUpgradeable.sol";
 
 contract VoteAggregator {
     function castVotes(

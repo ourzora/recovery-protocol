@@ -185,7 +185,11 @@ contract RecoveryCollection is
         public
         view
         override(
-            AccessControlUpgradeable, ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC2981Upgradeable, RecoveryChildV1
+            AccessControlUpgradeable,
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC2981Upgradeable,
+            RecoveryChildV1
         )
         returns (bool)
     {

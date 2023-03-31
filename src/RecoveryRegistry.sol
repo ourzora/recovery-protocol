@@ -21,8 +21,8 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     address public immutable treasuryImpl;
 
     mapping(address => RecoveryParentCollectionDefaultSettings) internal recoverySettingsForParentCollection;
-    mapping(address => mapping(uint256 => RecoveryCollectionAddresses)) internal
-        recoveryCollectionAddressesForParentToken;
+    mapping(address => mapping(uint256 => RecoveryCollectionAddresses))
+        internal recoveryCollectionAddressesForParentToken;
 
     struct RecoveryParentCollectionDefaultSettings {
         uint256 votingDelay;
@@ -43,11 +43,13 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     }
 
     event RecoveryParentCollectionRegistered(
-        address collection, RecoveryParentCollectionDefaultSettings defaultSettings
+        address collection,
+        RecoveryParentCollectionDefaultSettings defaultSettings
     );
 
     event RecoveryParentCollectionSettingsUpdated(
-        address collection, RecoveryParentCollectionDefaultSettings defaultSettings
+        address collection,
+        RecoveryParentCollectionDefaultSettings defaultSettings
     );
 
     event RecoveryCollectionCreated(
@@ -95,10 +97,13 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         );
         require(_msgSender() == IERC173(parentCollection).owner(), "RecoveryRegistry: caller not collection owner");
         require(
-            defaultParentHolderFeeBps <= 10000, "RecoveryRegistry: default parent holder fee bps cannot exceed 10000"
+            defaultParentHolderFeeBps <= 10000,
+            "RecoveryRegistry: default parent holder fee bps cannot exceed 10000"
         );
 
-        RecoveryParentCollectionDefaultSettings storage settings = recoverySettingsForParentCollection[parentCollection];
+        RecoveryParentCollectionDefaultSettings storage settings = recoverySettingsForParentCollection[
+            parentCollection
+        ];
 
         require(settings.votingToken == address(0), "RecoveryRegistry: collection already registered");
 
@@ -135,10 +140,13 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         require(votingPeriod > 0, "RecoveryRegistry: voting period must be greater than zero");
         require(_msgSender() == IERC173(parentCollection).owner(), "RecoveryRegistry: caller not collection owner");
         require(
-            defaultParentHolderFeeBps <= 10000, "RecoveryRegistry: default parent holder fee bps cannot exceed 10000"
+            defaultParentHolderFeeBps <= 10000,
+            "RecoveryRegistry: default parent holder fee bps cannot exceed 10000"
         );
 
-        RecoveryParentCollectionDefaultSettings storage settings = recoverySettingsForParentCollection[parentCollection];
+        RecoveryParentCollectionDefaultSettings storage settings = recoverySettingsForParentCollection[
+            parentCollection
+        ];
 
         require(parentCollectionIsRegistered(parentCollection), "RecoveryRegistry: collection already registered");
 
@@ -173,19 +181,23 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint256 parentTokenId,
         address _votingToken
     ) public {
-        require(parentCollectionIsRegistered(parentTokenContract), "RecoveryRegistry: parent collection not registered");
+        require(
+            parentCollectionIsRegistered(parentTokenContract),
+            "RecoveryRegistry: parent collection not registered"
+        );
         require(
             !recoveryCollectionExistsForParentToken(parentTokenContract, parentTokenId),
             "RecoveryRegistry: recovery already exists"
         );
         require(
-            _msgSender() == IERC721Upgradeable(parentTokenContract).ownerOf(parentTokenId)
-                || _msgSender() == IERC173(parentTokenContract).owner(),
+            _msgSender() == IERC721Upgradeable(parentTokenContract).ownerOf(parentTokenId) ||
+                _msgSender() == IERC173(parentTokenContract).owner(),
             "RecoveryRegistry: caller not token owner or collection owner"
         );
 
-        RecoveryParentCollectionDefaultSettings memory settings =
-            recoverySettingsForParentCollection[parentTokenContract];
+        RecoveryParentCollectionDefaultSettings memory settings = recoverySettingsForParentCollection[
+            parentTokenContract
+        ];
 
         address votingToken = _votingToken;
         if (votingToken == address(0)) {
@@ -196,8 +208,9 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             require(settings.allowAnyVotingToken, "RecoveryRegistry: voting token not allowed");
         }
 
-        RecoveryCollectionAddresses storage addresses =
-            recoveryCollectionAddressesForParentToken[parentTokenContract][parentTokenId];
+        RecoveryCollectionAddresses storage addresses = recoveryCollectionAddressesForParentToken[parentTokenContract][
+            parentTokenId
+        ];
 
         addresses.collection = address(new RecoveryProxy(collectionImpl, ""));
         addresses.governor = payable(address(new RecoveryProxy(governorImpl, "")));
@@ -205,7 +218,10 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 
         address[] memory empty = new address[](0);
         RecoveryTreasury(addresses.treasury).__RecoveryTreasury_init(
-            settings.timelockDelay, empty, empty, address(this)
+            settings.timelockDelay,
+            empty,
+            empty,
+            address(this)
         );
 
         RecoveryCollection(addresses.collection).initialize(
@@ -246,25 +262,37 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 
         // roles
         RecoveryTreasury(addresses.treasury).grantRole(
-            RecoveryTreasury(addresses.treasury).PROPOSER_ROLE(), addresses.governor
+            RecoveryTreasury(addresses.treasury).PROPOSER_ROLE(),
+            addresses.governor
         );
-        RecoveryTreasury(addresses.treasury).grantRole(RecoveryTreasury(addresses.treasury).EXECUTOR_ROLE(), address(0));
         RecoveryTreasury(addresses.treasury).grantRole(
-            RecoveryTreasury(addresses.treasury).CANCELLER_ROLE(), addresses.governor
+            RecoveryTreasury(addresses.treasury).EXECUTOR_ROLE(),
+            address(0)
+        );
+        RecoveryTreasury(addresses.treasury).grantRole(
+            RecoveryTreasury(addresses.treasury).CANCELLER_ROLE(),
+            addresses.governor
         );
         RecoveryTreasury(addresses.treasury).renounceRole(
-            RecoveryTreasury(addresses.treasury).TIMELOCK_ADMIN_ROLE(), address(this)
+            RecoveryTreasury(addresses.treasury).TIMELOCK_ADMIN_ROLE(),
+            address(this)
         );
         RecoveryGovernor(addresses.governor).transferOwnership(addresses.treasury);
         RecoveryCollection(addresses.collection).grantRole(
-            RecoveryCollection(addresses.collection).ADMIN_ROLE(), addresses.treasury
+            RecoveryCollection(addresses.collection).ADMIN_ROLE(),
+            addresses.treasury
         );
         RecoveryCollection(addresses.collection).renounceRole(
-            RecoveryCollection(addresses.collection).DEFAULT_ADMIN_ROLE(), address(this)
+            RecoveryCollection(addresses.collection).DEFAULT_ADMIN_ROLE(),
+            address(this)
         );
 
         emit RecoveryCollectionCreated(
-            addresses.collection, addresses.governor, addresses.treasury, parentTokenContract, parentTokenId
+            addresses.collection,
+            addresses.governor,
+            addresses.treasury,
+            parentTokenContract,
+            parentTokenId
         );
     }
 
