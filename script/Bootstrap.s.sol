@@ -23,7 +23,19 @@ contract Bootstrap is Script {
 
         vm.startBroadcast(0x9aaC8cCDf50dD34d06DF661602076a07750941F6);
 
-        registry.registerParentCollection(address(beacon), address(marker), 1, 50400, 172800, 0, 0, false, true, 10);
+        registry.registerParentCollection(
+            address(beacon),
+            address(marker),
+            address(0),
+            1,
+            50400,
+            172800,
+            0,
+            0,
+            false,
+            true,
+            10
+        );
         for (uint256 i = 1; i < 36; i++) {
             registry.createRecoveryCollectionForParentToken(address(beacon), i, address(marker));
         }

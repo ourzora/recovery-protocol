@@ -60,7 +60,19 @@ contract RecoveryTest is Test, EIP712Upgradeable {
 
     function test_Flow() external {
         vm.prank(tombDeployer);
-        registry.registerParentCollection(address(tomb), address(indexMarker), 1, 50400, 172800, 1, 0, false, true, 10);
+        registry.registerParentCollection(
+            address(tomb),
+            address(indexMarker),
+            address(0),
+            1,
+            50400,
+            172800,
+            1,
+            0,
+            false,
+            true,
+            10
+        );
 
         vm.prank(tombHolder);
         registry.createRecoveryCollectionForParentToken(address(tomb), 0, address(indexMarker));
@@ -104,7 +116,19 @@ contract RecoveryTest is Test, EIP712Upgradeable {
 
     function testVotingBySig() external {
         vm.prank(tombDeployer);
-        registry.registerParentCollection(address(tomb), address(indexMarker), 1, 50400, 172800, 1, 0, false, true, 10);
+        registry.registerParentCollection(
+            address(tomb),
+            address(indexMarker),
+            address(0),
+            1,
+            50400,
+            172800,
+            1,
+            0,
+            false,
+            true,
+            10
+        );
 
         vm.prank(tombHolder);
         registry.createRecoveryCollectionForParentToken(address(tomb), 0, address(indexMarker));
