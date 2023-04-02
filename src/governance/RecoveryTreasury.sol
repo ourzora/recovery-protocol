@@ -12,4 +12,7 @@ contract RecoveryTreasury is TimelockControllerUpgradeable {
     ) public initializer {
         __TimelockController_init(_minDelay, _proposers, _executors, _admin);
     }
+
+    // extra storage
+    uint256[50] private __gap;
 }

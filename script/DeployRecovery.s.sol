@@ -17,7 +17,7 @@ contract DeployRecovery is Script {
         address governorImpl = address(new RecoveryGovernor());
         address collectionImpl = address(new RecoveryCollection());
         address registryImpl = address(new RecoveryRegistry(collectionImpl, governorImpl, treasuryImpl));
-        RecoveryProxy registry = new RecoveryProxy(registryImpl, abi.encodeWithSignature("initialize()"));
+        RecoveryProxy registry = new RecoveryProxy(registryImpl, abi.encodeWithSignature("__RecoveryRegistry_init()"));
         // new VoteAggregator();
 
         vm.stopBroadcast();

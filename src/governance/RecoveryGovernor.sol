@@ -31,7 +31,7 @@ contract RecoveryGovernor is
         _disableInitializers();
     }
 
-    function initialize(
+    function __RecoveryGovernor_init(
         address _token,
         TimelockControllerUpgradeable _timelock,
         string calldata _governorName,
@@ -94,6 +94,7 @@ contract RecoveryGovernor is
 
     function _castVote(uint256 proposalId, address account, uint8 support, string memory reason, bytes memory params)
         internal
+        virtual
         override
         returns (uint256)
     {
@@ -164,4 +165,7 @@ contract RecoveryGovernor is
     {
         return super.supportsInterface(interfaceId);
     }
+
+    // extra storage
+    uint256[50] private __gap;
 }
