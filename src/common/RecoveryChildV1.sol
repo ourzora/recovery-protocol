@@ -16,33 +16,9 @@ abstract contract RecoveryChildV1 is Initializable, ERC165Upgradeable, IRecovery
     address internal recoveryParentTokenContract;
     uint256 internal recoveryParentTokenId;
 
-    string public inscription;
-    string public bootLink;
-
-    event InscriptionUpdated(string inscription);
-    event BootLinkUpdated(string bootLink);
-
     modifier onlyParentTokenOwner() {
         require(msg.sender == recoveryParentTokenOwner(), "RecoveryChildV1: caller is not the parent token owner");
         _;
-    }
-
-    function setInscription(string memory _inscription) public onlyParentTokenOwner {
-        inscription = _inscription;
-        emit InscriptionUpdated(_inscription);
-    }
-
-    function setBootLink(string memory _bootLink) public onlyParentTokenOwner {
-        bootLink = _bootLink;
-        emit BootLinkUpdated(_bootLink);
-    }
-
-    function setInscriptionAndBootLink(string memory _inscription, string memory _bootLink)
-        public
-        onlyParentTokenOwner
-    {
-        setInscription(_inscription);
-        setBootLink(_bootLink);
     }
 
     function __RecoveryChildV1_init(address _recoveryParentTokenContract, uint256 _recoveryParentTokenId)
