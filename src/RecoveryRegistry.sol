@@ -31,6 +31,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         uint256 timelockDelay;
         address votingToken;
         uint96 defaultParentHolderFeeBps;
+        address governorImpl;
         uint32 recoveryParentTokenOwnerVotingWeight;
         bool allowAnyVotingToken;
         bool parentOwnerCanSetERC173Owner;
@@ -76,6 +77,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     function registerParentCollection(
         address parentCollection,
         address votingToken,
+        address alternativeGovernorImpl,
         uint256 votingDelay, // delay before voting starts in blocks
         uint256 votingPeriod, // voting period in blocks
         uint256 timelockDelay, // delay before timelock can be executed in seconds
@@ -107,6 +109,12 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 
         require(settings.votingToken == address(0), "RecoveryRegistry: collection already registered");
 
+        if (alternativeGovernorImpl != address(0)) {
+            settings.governorImpl = alternativeGovernorImpl;
+        } else {
+            settings.governorImpl = governorImpl;
+        }
+
         settings.votingToken = votingToken;
         settings.votingDelay = votingDelay;
         settings.votingPeriod = votingPeriod;
@@ -123,6 +131,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     function updateParentCollectionDefaultSettings(
         address parentCollection,
         address votingToken,
+        address alternativeGovernorImpl,
         uint256 votingDelay,
         uint256 votingPeriod,
         uint256 timelockDelay,
@@ -149,6 +158,12 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         ];
 
         require(parentCollectionIsRegistered(parentCollection), "RecoveryRegistry: collection already registered");
+
+        if (alternativeGovernorImpl != address(0)) {
+            settings.governorImpl = alternativeGovernorImpl;
+        } else {
+            settings.governorImpl = governorImpl;
+        }
 
         settings.votingToken = votingToken;
         settings.votingDelay = votingDelay;
@@ -213,7 +228,7 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         ];
 
         addresses.collection = address(new RecoveryProxy(collectionImpl, ""));
-        addresses.governor = payable(address(new RecoveryProxy(governorImpl, "")));
+        addresses.governor = payable(address(new RecoveryProxy(settings.governorImpl, "")));
         addresses.treasury = payable(address(new RecoveryProxy(treasuryImpl, "")));
 
         address[] memory empty = new address[](0);
