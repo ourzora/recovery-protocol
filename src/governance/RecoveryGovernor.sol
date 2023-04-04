@@ -55,6 +55,10 @@ contract RecoveryGovernor is
         recoveryParentTokenOwnerVotingWeight = _recoveryParentTokenOwnerVotingWeight;
     }
 
+    function setRecoveryParentTokenOwnerVotingWeight(uint32 _recoveryParentTokenOwnerVotingWeight) public onlyOwner {
+        recoveryParentTokenOwnerVotingWeight = _recoveryParentTokenOwnerVotingWeight;
+    }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function votingDelay() public view override(IGovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
