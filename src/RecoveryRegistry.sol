@@ -93,10 +93,6 @@ contract RecoveryRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             "RecoveryRegistry: voting token cannot be zero address unless any voting token is allowed"
         );
         require(votingPeriod > 0, "RecoveryRegistry: voting period must be greater than zero");
-        require(
-            IERC165Upgradeable(parentCollection).supportsInterface(type(IERC721Upgradeable).interfaceId),
-            "RecoveryRegistry: collection does not support ERC721"
-        );
         require(_msgSender() == IERC173(parentCollection).owner(), "RecoveryRegistry: caller not collection owner");
         require(
             defaultParentHolderFeeBps <= 10000,
