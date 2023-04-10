@@ -11,6 +11,7 @@ import "../src/token/RecoveryCollection.sol";
 contract DeployRecovery is Script {
     function run() public {
         uint256 key = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(key);
 
         address treasuryImpl = address(new RecoveryTreasury());
         address governorImpl = address(new RecoveryGovernor());
